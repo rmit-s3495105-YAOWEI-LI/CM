@@ -31,12 +31,15 @@ def adduser(request):
             return HttpResponse(HTTP_400_BAD_REQUEST)
         elif password != repeat_password:
             return HttpResponse(HTTP_400_BAD_REQUEST)
+        user=MyUser.objects.filter(username=request.POST.get('username', ''))
+        if user is not None:
+            return HttpResponse(HTTP_400_BAD_REQUEST)
         else:
             new_user=MyUser(username=request.POST.get('username', '')
                                 ,password=request.POST.get('password', ''),
-                                permission=1)
+                                permission=request.POST.get('permission', ''))
             new_user.save()
-            return Response([{'username':new_user.username}])
+            return HttpResponse(HTTP_200_OK)
     
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny),)      
