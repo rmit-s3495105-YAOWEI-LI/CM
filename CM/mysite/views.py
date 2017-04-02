@@ -18,28 +18,25 @@ from django.contrib import auth
 
 
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.IsAdminUser),)  
-def adduser(request): 
+@permission_classes((permissions.AllowAny,))  
+def adduser(request):  
     adminKey=request.POST.get('adminkey', '')
+    username= request.POST.get('username', '')
+    password=request.POST.get('password', '')
+    repeat_password = request.POST.get('repeat_password', '')
     if adminKey!='iamadministrator':
-        return HTTP_400_BAD_REQUEST
+        return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
-        username= request.POST.get('username', '')
-        password=request.POST.get('password', '')
-        repeat_password = request.POST.get('repeat_password', '')
         if password == '' or repeat_password == '':
-            return HTTP_400_BAD_REQUEST
+            return HttpResponse(HTTP_400_BAD_REQUEST)
         elif password != repeat_password:
-            return HTTP_400_BAD_REQUEST
+            return HttpResponse(HTTP_400_BAD_REQUEST)
         else:
-            if User.objects.filter(username=username):
-                return HTTP_400_BAD_REQUEST
-            else:
-                new_user = User.objects.create_user(username=username, password=password)
-                new_user.save
-                new_myuser=MyUser(username=new_user.username,password=new_user.password,permission=request.POST.get('permission', ''))
-                new_myuser.save
-                return HTTP_200_OK
+            new_user=MyUser(username=request.POST.get('username', '')
+                                ,password=request.POST.get('password', ''),
+                                permission=1)
+            new_user.save()
+            return Response([{'username':new_user.username}])
     
 @api_view(http_method_names=['POST'])  
 @permission_classes((permissions.AllowAny),)      
