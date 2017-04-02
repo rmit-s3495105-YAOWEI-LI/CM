@@ -42,39 +42,38 @@ def adduser(request):
             return HttpResponse(HTTP_200_OK)
     
 @api_view(http_method_names=['POST'])  
-@permission_classes((permissions.AllowAny),)      
-def login(request):
-    username = request.POST.get('username', '')
-    password = request.POST.get('password', '')
-    user = auth.authenticate(username=username, password=password)
-    if user is not None:
-        user=MyUser.objects.get(username=username)
-        if user.permission is 1:
-            return 'iamadministrator'
-        else:
-            return HTTP_200_OK
+@permission_classes((permissions.AllowAny,))  
+def login(request):  
+    user=MyUser.objects.filter(username=request.POST.get('username', '')
+                                ,password=request.POST.get('password', ''))
+    if user is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
-        return HTTP_400_BAD_REQUEST
+        user=MyUser.objects.get(username=request.POST.get('username', ''))
+        if user.permission==1:
+            return Response({"adminkey":'iamadministrator'})
+        else:
+            return HttpResponse(HTTP_200_OK)
     
     
 @api_view(http_method_names=['PUT'])  
-@permission_classes((permissions.AllowAny),) 
-def changePassword(request):
-    username=request.REQUEST.get('username', '')
-    newpassword=request.REQUEST.get('password', '')
-    re_newpassword=request.REQUEST.get('re_password', '')
-    user=MyUser.objects.get(username=username)
+@permission_classes((permissions.AllowAny,))  
+def changePassword(request): 
+    userName=request.data.get('username','')
+    newpassword=request.data.get('password','')
+    re_newpassword=request.data.get('re_password','')
+    user=MyUser.objects.filter(username=userName)
+    if user is None:
+        return HttpResponse(HTTP_400_BAD_REQUEST)
     if newpassword == '' or re_newpassword == '':
-        return HTTP_400_BAD_REQUEST
+        return HttpResponse(HTTP_400_BAD_REQUEST)
     elif newpassword != re_newpassword:
-        return HTTP_400_BAD_REQUEST
+        return HttpResponse(HTTP_400_BAD_REQUEST)
     else:
+        user=MyUser.objects.get(username=userName)
         user.password=newpassword
-        user.save
-        user=User.objects.get(username=username)
-        user.set_password(newpassword)
-        user.save
-        return HTTP_200_OK
+        user.save()
+        return HttpResponse(HTTP_200_OK)
     
 
         
